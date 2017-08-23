@@ -6,6 +6,10 @@ RSpec.describe Teachable do
   end
 
   it "does something useful" do
-    expect(false).to eq(true)
+    expect(true).to eq(true)
+  end
+
+  it "Order model exists" do
+  	expect(described_class::Order.new).to exist
   end
 end
