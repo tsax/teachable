@@ -26,7 +26,7 @@ RSpec.describe Teachable do
   	end
 
   	context "when using a new email" do
-  		let(:user_email) 		{ "new_email22@example.com" }
+  		let(:user_email) 		{ "new_email11@example.com" }
   		let(:user_password)	{ "password" }
 
   		it "returns a new user" do
@@ -85,6 +85,20 @@ RSpec.describe Teachable do
   end
 
   describe "get orders for user" do
+  	let(:user_email) 		{ "tsax@example.com" }
+		let(:user_password) { "password" }
+
+		before do
+			VCR.use_cassette('tsax_user') do
+				@user = Teachable::User.authenticate(user_email, user_password)
+			end
+		end
+		it "gets orders" do
+			VCR.use_cassette('user_orders') do
+				orders = @user.get_orders_for_user
+				expect(orders.class).to eq(Array)
+			end
+		end
   end
 
   describe "create an order for user" do

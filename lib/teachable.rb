@@ -73,7 +73,11 @@ module Teachable
         raise "Error: #{error}"
       end
 
-      return body.map{ |order| Order.new(order) }
+      if body.empty?
+        return body
+      else
+        return body.map{ |order| Order.new(order) }
+      end
     end
 
     def create_order_for_user(total, total_quantity)
@@ -97,9 +101,13 @@ module Teachable
     	response = connection.delete "/api/orders/#{order_id}.json",
     												{
     													user_email: self.email,
-    													user_token: self.token
+    													user_token: self.tokens
     												}
-      return JSON.parse(response.body)
+      if response.body.empty?
+        return "Order:#{order_id} deleted!"
+      else
+        return JSON.parse(response.body)
+      end
     end
 
     private
