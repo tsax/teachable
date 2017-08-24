@@ -48,10 +48,10 @@ module Teachable
 
     def get_user_details
       response = connection.get '/api/users/current_user/edit.json',
-        {
-        user_email: self.email,
-        user_token: self.tokens
-      }
+                                {
+                                  user_email: self.email,
+                                  user_token: self.tokens
+                                }
       body = JSON.parse(response.body)
 
       if (error = body["errors"] || body["error"])
