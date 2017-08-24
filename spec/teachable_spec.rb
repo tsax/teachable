@@ -1,5 +1,6 @@
 require "spec_helper"
 require 'vcr'
+require 'faker'
 require 'support/vcr_setup'
 
 RSpec.describe Teachable do
@@ -26,11 +27,11 @@ RSpec.describe Teachable do
     end
 
     context "when using a new email" do
-      let(:user_email) 		{ "new_email11@example.com" }
+      let(:user_email) 		{ Faker::Internet.email }
       let(:user_password)	{ "password" }
 
       it "returns a new user" do
-        VCR.use_cassette('new_user') do
+        VCR.use_cassette('new_user', match_requests_on: [:headers,:body], record: :new_episodes) do
           user = Teachable::User.register_new_user(user_email,
                                                    user_password,
                                                    user_password)
@@ -57,7 +58,7 @@ RSpec.describe Teachable do
     end
 
     context "when login is unsuccessful" do
-      let(:user_email) 		{ "whatever22@example.com" }
+      let(:user_email) 	  { "whatever22@example.com" }
       let(:user_password) { "password1" }
 
       it "raises an error" do
@@ -70,7 +71,7 @@ RSpec.describe Teachable do
   end
 
   describe "get details of existing user" do
-    let(:user_email) 		{ "whatever22@example.com" }
+    let(:user_email)  	{ "whatever22@example.com" }
     let(:user_password) { "password" }
 
     it "raises an error" do
@@ -120,8 +121,62 @@ RSpec.describe Teachable do
   end
 
   describe "create an order for user" do
+    context 'for a user with no orders' do
+      let(:u_email) { "dev-11111@example.com" }
+      let(:u_password) { "password" }
+      let(:total) { "50.0" }
+      let(:total_quantity) { 100 }
+
+      before do
+        VCR.use_cassette('no_orders_user') do
+          @no_orders_user = Teachable::User.authenticate(u_email, u_password)
+        end
+      end
+
+      after do
+        @no_orders_user.get_orders_for_user.each do |order|
+          @no_orders_user.delete_order_for_user(order.id)
+        end
+      end
+
+      it "creates an order" do
+        order = @no_orders_user.create_order_for_user(total, total_quantity)
+        expect(order.email).to eq(u_email)
+        expect(order.total).to eq(total)
+        expect(order.total_quantity).to eq(total_quantity)
+      end
+    end
   end
 
   describe "delete an order for user" do
+    let(:user_email) 	{ "tsax@example.com" }
+    let(:user_password) { "password" }
+    let(:total) { "50.0" }
+    let(:total_quantity) { 100 }
+
+    before do
+      VCR.use_cassette('tsax_user') do
+        @tsax_user = Teachable::User.authenticate(user_email, user_password)
+      end
+    end
+
+    after do
+      @tsax_user.create_order_for_user(total, total_quantity)
+    end
+
+    context "for a user with orders" do
+      VCR.use_cassette('user_orders') do
+        orders = @tsax_user.get_orders_for_user
+        expect(orders.class).to eq(Array)
+
+        puts @tsax_user
+        orders = @tsax_user.get_orders_for_user
+        old_count = orders.count
+        @tsax_user.delete_order_for_user(orders.first.id)
+        new_count = @tsax_user.get_orders_for_user.count
+
+        expect(new_count).to eq(old_count - 1)
+      end
+    end
   end
 end

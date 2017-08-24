@@ -2,7 +2,7 @@ require "teachable/version"
 require 'faraday'
 require 'json'
 
-API_URL = "https://fast-bayou-75985.herokuapp.com"
+TEACHABLE_API_URL = ENV["TEACHABLE_URL"] || "https://fast-bayou-75985.herokuapp.com"
 
 module Teachable
   class User
@@ -116,7 +116,7 @@ module Teachable
     private
 
     def self.connection
-      @conn ||= Faraday.new(url: API_URL)
+      @conn ||= Faraday.new(url: TEACHABLE_API_URL)
     end
 
     def connection
