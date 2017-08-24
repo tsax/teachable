@@ -35,7 +35,6 @@ RSpec.describe Teachable do
           user = Teachable::User.register_new_user(user_email,
                                                    user_password,
                                                    user_password)
-          puts user
           expect(user.class).to eq(Teachable::User)
           expect(user.email).to eq(user_email)
         end
@@ -117,7 +116,6 @@ RSpec.describe Teachable do
         end
       end
     end
-
   end
 
   describe "create an order for user" do
@@ -148,35 +146,26 @@ RSpec.describe Teachable do
     end
   end
 
-  describe "delete an order for user" do
-    let(:user_email) 	{ "tsax@example.com" }
-    let(:user_password) { "password" }
-    let(:total) { "50.0" }
-    let(:total_quantity) { 100 }
-
+  describe "delete an order" do
     before do
       VCR.use_cassette('tsax_user') do
-        @tsax_user = Teachable::User.authenticate(user_email, user_password)
+        @op_user = Teachable::User.authenticate("tsax@example.com", "password")
       end
     end
 
     after do
-      @tsax_user.create_order_for_user(total, total_quantity)
+      @op_user.create_order_for_user(50, 100)
     end
 
-    context "for a user with orders" do
-      VCR.use_cassette('user_orders') do
-        orders = @tsax_user.get_orders_for_user
-        expect(orders.class).to eq(Array)
+    it "deletes an order" do
+      old_orders = @op_user.get_orders_for_user
+      old_count = old_orders.count
+      @op_user.delete_order_for_user(old_orders.first.id)
 
-        puts @tsax_user
-        orders = @tsax_user.get_orders_for_user
-        old_count = orders.count
-        @tsax_user.delete_order_for_user(orders.first.id)
-        new_count = @tsax_user.get_orders_for_user.count
+      new_orders = @op_user.get_orders_for_user
+      new_count = new_orders.count
 
-        expect(new_count).to eq(old_count - 1)
-      end
+      expect(new_count).to eq(old_count - 1)
     end
   end
 end
