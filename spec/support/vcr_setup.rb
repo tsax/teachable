@@ -1,4 +1,7 @@
+require 'vcr'
+require 'rubygems'
+
 VCR.configure do |c|
-	c.cassette_library_dir = "spec/fixtures"
+	c.cassette_library_dir = "spec/fixtures/vcr_cassettes"
 	c.hook_into :webmock
 end
