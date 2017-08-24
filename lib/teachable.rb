@@ -7,28 +7,28 @@ API_URL = "https://fast-bayou-75985.herokuapp.com"
 module Teachable
   class User
     attr_reader :id, :name, :nickname, :image, :email, :tokens, :created_at, :updated_at
-    
+
     def self.authenticate(email, password)
-    	response = connection.post '/users/sign_in.json', 
+    	response = connection.post '/users/sign_in.json',
     						 						{
-    						 							user: 
+    						 							user:
     						 								{
     						 									email: email,
     						 							 		password: password
     						 								}
     						 						}
     	body = JSON.parse(response.body)
-      
-      unless body["errors"]
-        return new(body)
+
+      if (error = body["errors"] || body["error"])
+        raise "Error: #{error}"
       end
       
-      raise "Error: #{body["errors"]}"
+      return new(body)
     end
 
     def self.register_new_user(email, password, password_confirmation)
       raise "Error: password and password_confirmation must match" unless password == password_confirmation
-    	response = connection.post '/users.json', 
+    	response = connection.post '/users.json',
     												{
     													user:
     													{
@@ -38,21 +38,27 @@ module Teachable
     													}
     												}
       body = JSON.parse(response.body)
-      
-      unless body["errors"]
-        return new(body)
+
+      if (error = body["errors"] || body["error"])
+        raise "Error: #{body["errors"]}"
       end
-      
-      raise "Error: #{body["errors"]}"
+
+      return new(body)
     end
 
     def get_user_details
-    	response = connection.get '/api/users/current_user/edit.json', 
+    	response = connection.get '/api/users/current_user/edit.json',
     												{
     													user_email: self.email,
     													user_token: self.tokens
     												}
-    	return JSON.parse(response.body)
+      body = JSON.parse(response.body)
+        
+      if (error = body["errors"] || body["error"])
+        raise "Error: #{body["errors"]}"
+      end
+
+      return User.new(body)
     end
 
     def get_orders_for_user
@@ -80,6 +86,10 @@ module Teachable
     														email: self.email
     													}
     												}
+      unless body["errors"]
+        return Order.new(body)
+      end
+
       return JSON.parse(response.body)
     end
 
@@ -115,7 +125,7 @@ module Teachable
   end
 
   class Order
-  	attr_reader :id, :email, :number, :total, :total_quantity, 
+  	attr_reader :id, :email, :number, :total, :total_quantity,
   							:special_instructions, :created_at, :updated_at
 
   	def initialize(attributes)
