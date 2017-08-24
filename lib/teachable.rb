@@ -29,14 +29,14 @@ module Teachable
     def self.register_new_user(email, password, password_confirmation)
       raise "Error: password and password_confirmation must match" unless password == password_confirmation
       response = connection.post '/users.json',
-        {
-        user:
-        {
-        email: email,
-        password: password,
-        password_confirmation: password_confirmation
-      }
-      }
+                                  {
+                                    user:
+                                      {
+                                        email: email,
+                                        password: password,
+                                        password_confirmation: password_confirmation
+                                      }
+                                  }
       body = JSON.parse(response.body)
 
       if (error = body["errors"] || body["error"])
@@ -63,10 +63,10 @@ module Teachable
 
     def get_orders_for_user
       response = connection.get '/api/orders.json',
-        {
-        user_email: self.email,
-        user_token: self.tokens
-      }
+                                {
+                                  user_email: self.email,
+                                  user_token: self.tokens
+                                }
       body = JSON.parse(response.body)
 
       if (body.class != Array && error = body["errors"] || body["error"])
@@ -82,14 +82,14 @@ module Teachable
 
     def create_order_for_user(total, total_quantity)
       response = connection.post "/api/orders.json?user_email=#{self.email}&user_token=#{self.tokens}",
-        {
-          order:
-          {
-            total: total,
-            total_quantity: total_quantity,
-            email: self.email
-      }
-      }
+                                {
+                                  order:
+                                  {
+                                    total: total,
+                                    total_quantity: total_quantity,
+                                    email: self.email
+                                  }
+                                }
 
       body = JSON.parse(response.body)
 
@@ -102,10 +102,10 @@ module Teachable
 
     def delete_order_for_user(order_id)
       response = connection.delete "/api/orders/#{order_id}.json",
-        {
-        user_email: self.email,
-        user_token: self.tokens
-      }
+                                   {
+                                    user_email: self.email,
+                                    user_token: self.tokens
+                                   }
       if response.body.empty?
         return "Order:#{order_id} deleted!"
       else
